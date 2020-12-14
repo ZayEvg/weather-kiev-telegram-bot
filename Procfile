@@ -1,1 +1,1 @@
-python wbot.py
+python3 wbot.py
