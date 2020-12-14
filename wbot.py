@@ -38,7 +38,7 @@ def parse_page(filename, url, day):
                 if len(temps) == 1:
                     min_temp = re.findall('[+-−]?\d+', str(temps))[0]
                     max_temp = re.findall('[+-−]?\d+', str(temps))[0]
-                else:
+                elif len(temps) == 2:
                     min_temp = re.findall('[+-−]?\d+', str(temps[0]))[0]
                     max_temp = re.findall('[+-−]?\d+', str(temps[1]))[0]
     result.append(date)
