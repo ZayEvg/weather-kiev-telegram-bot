@@ -17,7 +17,7 @@ def read_file(filename):
     return text
 
 
-def parse_page_today(filename, url):
+def parse_page(filename, url, day):
     get_page(url)
     result = []
     text = read_file(filename)
@@ -30,39 +30,17 @@ def parse_page_today(filename, url):
     all_dates = soup.find_all('div', {'class': 'tab-content'})
     for item in all_dates:
         if item.find('div', {'class': 'date xs'}):
-            day = re.findall('\w+', item.find('div', {'class': 'date xs'}).text)
-            if day[0] == 'Сегодня':
+            which_day = re.findall('\w+', item.find('div', {'class': 'date xs'}).text)
+            if which_day[0] == day:
                 date_day = re.findall('\w{2}\,\s\d+\s\w{2,5}', item.find('div', {'class': 'date'}).text)
-                date = '(' + day[0] + ') ' + date_day[0]
+                date = '(' + which_day[0] + ') ' + date_day[0]
                 temps = item.find_all('span', {'class': 'unit unit_temperature_c'})
-                min_temp = re.findall('[+-−]?\d+', str(temps[0]))[0]
-                max_temp = re.findall('[+-−]?\d+', str(temps[1]))[0]
-    result.append(date)
-    result.append(min_temp)
-    result.append(max_temp)
-    return result
-
-
-def parse_page_tomorrow(filename, url):
-    get_page(url)
-    result = []
-    text = read_file(filename)
-
-    soup = BeautifulSoup(text, features="html.parser")
-
-    date = ''
-    min_temp = ''
-    max_temp = ''
-    all_dates = soup.find_all('div', {'class': 'tab-content'})
-    for item in all_dates:
-        if item.find('div', {'class': 'date xs'}):
-            day = re.findall('\w+', item.find('div', {'class': 'date xs'}).text)
-            if day[0] == 'Завтра':
-                date_day = re.findall('\w{2}\,\s\d+\s\w{2,5}', item.find('div', {'class': 'date'}).text)
-                date = '(' + day[0] + ') ' + date_day[0]
-                temps = item.find_all('span', {'class': 'unit unit_temperature_c'})
-                min_temp = re.findall('[+-−]?\d+', str(temps[0]))[0]
-                max_temp = re.findall('[+-−]?\d+', str(temps[1]))[0]
+                if len(temps) == 1:
+                    min_temp = re.findall('[+-−]?\d+', str(temps))[0]
+                    max_temp = re.findall('[+-−]?\d+', str(temps))[0]
+                else:
+                    min_temp = re.findall('[+-−]?\d+', str(temps[0]))[0]
+                    max_temp = re.findall('[+-−]?\d+', str(temps[1]))[0]
     result.append(date)
     result.append(min_temp)
     result.append(max_temp)
@@ -90,11 +68,11 @@ def stop_message(message):
 @bot.message_handler(content_types=['text'])
 def reply_text_message(message):
     if message.text.lower() == "погода сегодня":
-        answer = parse_page_today('page.html', 'https://www.gismeteo.ua/weather-kyiv-4944/')
+        answer = parse_page('page.html', 'https://www.gismeteo.ua/weather-kyiv-4944/', 'Сегодня')
         msg_txt = '%s\nТемпература от %s до %s' % (answer[0], answer[1], answer[2])
         bot.send_message(message.chat.id, msg_txt)
     elif message.text.lower() == "погода завтра":
-        answer = parse_page_tomorrow('page.html', 'https://www.gismeteo.ua/weather-kyiv-4944/')
+        answer = parse_page('page.html', 'https://www.gismeteo.ua/weather-kyiv-4944/', 'Завтра')
         msg_txt = '%s\nТемпература от %s до %s' % (answer[0], answer[1], answer[2])
         bot.send_message(message.chat.id, msg_txt)
 
